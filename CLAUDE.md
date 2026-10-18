@@ -3,7 +3,7 @@
 ## Stack
 - Node.js (LTS)
 - TypeScript
-- React + Vite (or Next.js later if needed)
+- React + Vite
 - Tailwind CSS
 - ESLint + Prettier
 
@@ -13,7 +13,6 @@
 - Type everything properly (avoid `any`)
 - Keep components small and focused
 - Use absolute imports when possible
-- Write clear, self-documenting code
 
 ## AI Assistant Instructions
 When helping with this project:
