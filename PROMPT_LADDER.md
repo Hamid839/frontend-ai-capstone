@@ -12,8 +12,6 @@ This experiment investigates how individual prompt improvements affect AI assist
 
 The experiment starts with a weak prompt and adds one named layer at a time. Each version retains the previous version and adds exactly one change.
 
-**Important:** The output excerpts below are illustrative starting examples. Before submitting, I will replace them with excerpts from my actual six runs and adjust my observations to match the evidence.
-
 ---
 
 ## Run 0 — Weak baseline
@@ -22,7 +20,7 @@ The experiment starts with a weak prompt and adds one named layer at a time. Eac
 
 > Help me build a settings form.
 
-### Output excerpt — illustrative
+### Output 
 
 A settings form typically includes fields for a user's name, email address, theme preferences, and notification settings. You can use HTML to create the form and JavaScript to handle interactions. Add labels, validate required fields, and include a submit button.
 
@@ -43,7 +41,7 @@ A settings form typically includes fields for a user's name, email address, them
 
 **Single change:** Added a specific feature goal to the baseline.
 
-### Output excerpt — illustrative
+### Output 
 
 Create four controls: a display-name input, an email input, a theme selector, and a notifications toggle. Add a Save Settings button and validate the email before saving. Show a success message when the settings are saved.
 
@@ -64,7 +62,7 @@ Create four controls: a display-name input, an email input, a theme selector, an
 
 **Single change:** Added the intended audience.
 
-### Output excerpt — illustrative
+### Output 
 
 Break the form into understandable pieces, use meaningful field names, and keep validation logic separate from presentation where appropriate. Explain how the inputs, validation, and submit handler work so a junior developer can maintain the feature.
 
@@ -85,7 +83,7 @@ Break the form into understandable pieces, use meaningful field names, and keep 
 
 **Single change:** Added the capstone's technical context.
 
-### Output excerpt — illustrative
+### Output 
 
 Build the form as a typed React component. Use TypeScript interfaces or types for the settings values, and use Tailwind CSS for layout and field styling. Keep the component compatible with the existing Vite project.
 
@@ -106,7 +104,7 @@ Build the form as a typed React component. Use TypeScript interfaces or types fo
 
 **Single change:** Specified the format of the answer.
 
-### Output excerpt — illustrative
+### Output 
 
 1. **Plan:** Identify the form component and its state and validation needs.
 2. **Implementation:** Provide the component code and any supporting files, with file paths.
@@ -129,7 +127,7 @@ Build the form as a typed React component. Use TypeScript interfaces or types fo
 
 **Single change:** Added explicit constraints on dependencies, project changes, backend assumptions, and verification claims.
 
-### Output excerpt — illustrative
+### Output
 
 Inspect the existing project structure before editing. Reuse installed dependencies and established conventions. If no settings API exists, separate the form from the save operation and explain the integration point instead of inventing an endpoint. Report only verification commands that were actually run and their observed results.
 
