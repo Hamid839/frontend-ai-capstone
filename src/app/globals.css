@@ -21,3 +21,10 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+:root {
+  --color-primary: #1E6848;
+  --color-text: #17231D;
+  --color-background: #F7F8F5;
+  --color-accent: #B8D957;
+}
