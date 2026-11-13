@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^15.1.0",
+    "@ai-sdk/google": "1.2.22",
+    "@ai-sdk/react": "1.2.12",
+    "ai": "4.3.19",
+    "next": "15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -17,6 +20,7 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vercel/node": "^28.0.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.16.0",
     "eslint-config-next": "^15.1.0",
