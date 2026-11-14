@@ -3,7 +3,7 @@
  */
 
 export const DEFAULT_CHAT_MODEL =
-  process.env.GOOGLE_MODEL ?? "gemini-2.5-flash";
+  process.env.GOOGLE_MODEL ?? "gemini-3.8-flash";
 
 export const CHAT_TEMPERATURE = 0.4;
 
