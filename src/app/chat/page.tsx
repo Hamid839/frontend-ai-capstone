@@ -18,15 +18,16 @@ export default function ChatPage() {
           Ask about my work
         </h1>
         <p className="mt-3 max-w-2xl text-slate-400">
-          Responses stream token by token from a server route that calls Claude.
-          You can stop generation mid-stream and continue the conversation.
+          Responses stream token by token from a secure server route powered by
+          Google Gemini. You can stop generation mid-stream and continue the
+          conversation.
         </p>
       </header>
 
       <ChatInterface />
 
       <p className="mt-4 text-xs text-slate-500">
-        The API key is stored only on the server. This assistant answers
+        The API key is stored exclusively on the server. This assistant answers
         questions about portfolio projects and skills — not general web search.
       </p>
     </div>
