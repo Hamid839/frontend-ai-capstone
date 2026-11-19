@@ -2,6 +2,89 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  PortfolioProjectCard,
+  type PortfolioProjectCardData,
+} from "@/components/chat/PortfolioProjectCard";
+
+type PortfolioSearchResult = {
+  query: string;
+  total: number;
+  projects: PortfolioProjectCardData[];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function isSafeProjectHref(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname === "github.com" &&
+      url.pathname.startsWith("/Hamid839/frontend-ai-capstone/")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isPortfolioProject(
+  value: unknown,
+): value is PortfolioProjectCardData {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.name === "string" &&
+    typeof value.description === "string" &&
+    isStringArray(value.technologies) &&
+    typeof value.contribution === "string" &&
+    isStringArray(value.features) &&
+    typeof value.href === "string" &&
+    isSafeProjectHref(value.href) &&
+    typeof value.relevance === "number" &&
+    Number.isFinite(value.relevance) &&
+    value.relevance >= 0 &&
+    value.relevance <= 1
+  );
+}
+
+function parsePortfolioSearchResult(
+  value: unknown,
+): PortfolioSearchResult | null {
+  if (
+    !isRecord(value) ||
+    typeof value.query !== "string" ||
+    value.query.trim().length < 2 ||
+    value.query.length > 100 ||
+    typeof value.total !== "number" ||
+    !Number.isInteger(value.total) ||
+    value.total < 0 ||
+    !Array.isArray(value.projects) ||
+    !value.projects.every(isPortfolioProject) ||
+    value.projects.length > value.total
+  ) {
+    return null;
+  }
+
+  return {
+    query: value.query,
+    total: value.total,
+    projects: value.projects,
+  };
+}
+
+function getSearchQuery(args: unknown): string | null {
+  if (!isRecord(args) || typeof args.query !== "string") {
+    return null;
+  }
+  return args.query;
+}
 
 /**
  * Streaming chat UI (FE-06)
@@ -19,6 +102,7 @@ export function ChatInterface() {
     isLoading,
     stop,
     error,
+    reload,
   } = useChat({
     api: "/api/chat",
   });
@@ -68,6 +152,16 @@ export function ChatInterface() {
     isLoading &&
     messages.length > 0 &&
     messages[messages.length - 1]?.role === "assistant";
+  const canRetry =
+    Boolean(error) &&
+    !isLoading &&
+    messages.some((message) => message.role === "user");
+
+  function retryLastRequest() {
+    if (!canRetry) return;
+    setPinToBottom(true);
+    void reload();
+  }
 
   return (
     <div className="flex h-[min(70vh,640px)] flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-lg">
@@ -105,9 +199,84 @@ export function ChatInterface() {
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide opacity-70">
                   {isUser ? "You" : "Assistant"}
                 </p>
-                <div className="whitespace-pre-wrap break-words">
-                  {message.content}
-                </div>
+                {message.content ? (
+                  <div className="whitespace-pre-wrap break-words">
+                    {message.content}
+                  </div>
+                ) : null}
+                {message.toolInvocations
+                  ?.filter(
+                    (invocation) =>
+                      invocation.toolName === "searchPortfolioProjects",
+                  )
+                  .map((invocation) => {
+                    if (invocation.state === "partial-call") {
+                      return (
+                        <div
+                          key={invocation.toolCallId}
+                          role="status"
+                          aria-live="polite"
+                          className="mt-3 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-sm text-slate-300"
+                        >
+                          Preparing project search…
+                        </div>
+                      );
+                    }
+
+                    if (invocation.state === "call") {
+                      const query = getSearchQuery(invocation.args);
+                      return (
+                        <div
+                          key={invocation.toolCallId}
+                          role="status"
+                          aria-live="polite"
+                          className="mt-3 rounded-lg border border-indigo-800/80 bg-indigo-950/50 px-3 py-2 text-sm text-indigo-200"
+                        >
+                          Searching portfolio projects
+                          {query ? (
+                            <span className="mt-1 block break-words text-xs text-indigo-300">
+                              Search: {query}
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    }
+
+                    const result = parsePortfolioSearchResult(
+                      invocation.result,
+                    );
+
+                    return (
+                      <div
+                        key={invocation.toolCallId}
+                        className="mt-3 space-y-3"
+                      >
+                        {result ? (
+                          result.projects.length === 0 ? (
+                            <p className="rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-sm text-slate-300">
+                              No matching projects found. Try a project name,
+                              technology, or feature.
+                            </p>
+                          ) : (
+                            result.projects.map((project) => (
+                              <PortfolioProjectCard
+                                key={project.id}
+                                project={project}
+                              />
+                            ))
+                          )
+                        ) : (
+                          <p
+                            role="alert"
+                            className="rounded-lg border border-amber-800 bg-amber-950/40 px-3 py-2 text-sm text-amber-200"
+                          >
+                            Project results could not be displayed. Please
+                            retry the request.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           );
@@ -138,9 +307,24 @@ export function ChatInterface() {
         {error ? (
           <div
             role="alert"
-            className="rounded-lg border border-rose-800 bg-rose-950/40 px-3 py-2 text-sm text-rose-200"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-800 bg-rose-950/60 px-4 py-3 text-sm text-rose-100"
           >
-            {error.message || "Something went wrong. Try again."}
+            <div>
+              <p className="font-semibold">We couldn’t complete that request.</p>
+              <p className="mt-1 text-rose-200">
+                Your conversation is still available. You can try the request
+                again.
+              </p>
+            </div>
+            {canRetry ? (
+              <button
+                type="button"
+                onClick={retryLastRequest}
+                className="rounded-md border border-rose-700 bg-rose-900/50 px-3 py-1.5 font-medium text-rose-100 hover:bg-rose-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+              >
+                Retry last request
+              </button>
+            ) : null}
           </div>
         ) : null}
 
