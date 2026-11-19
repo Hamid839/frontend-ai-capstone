@@ -6,6 +6,7 @@ import {
   CHAT_TEMPERATURE,
   DEFAULT_CHAT_MODEL,
 } from "@/lib/ai/config";
+import { searchPortfolioProjects } from "@/lib/ai/tools/search-portfolio-projects";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -107,6 +108,8 @@ export async function POST(req: Request) {
       system: CHAT_SYSTEM_PROMPT,
       messages: convertToCoreMessages(messages as Message[]),
       temperature: CHAT_TEMPERATURE,
+      tools: { searchPortfolioProjects },
+      maxSteps: 2,
       onError: ({ error }) => {
         console.error("[api/chat] Gemini stream error:", error);
       },
