@@ -1,4 +1,4 @@
-# PF-04 — Understanding DNS and How a Website Loads
+# PF-04 — Understanding DNS and How a Website Loads 
 
 DNS stands for Domain Name System. It works like the internet's phonebook. People remember website names such as `hamid-shoukat.vercel.app`, but computers use IP addresses to locate servers. DNS translates a human-readable domain name into the information needed to reach the correct website.
 
