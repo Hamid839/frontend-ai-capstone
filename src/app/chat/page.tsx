@@ -9,26 +9,26 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-      <header className="mb-6">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-5 sm:mb-6">
         <p className="text-sm font-medium uppercase tracking-wider text-indigo-400">
-          FE-06 · Streaming chat
+          Chat · tools + error states
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
           Ask about my work
         </h1>
-        <p className="mt-3 max-w-2xl text-slate-400">
-          Responses stream token by token from a secure server route powered by
-          Google Gemini. You can stop generation mid-stream and continue the
-          conversation.
+        <p className="mt-2 max-w-2xl text-sm text-slate-400 sm:text-base">
+          Responses stream from a secure server route. Project searches render
+          as cards. If a request fails mid-stream, use Retry last message —
+          earlier turns stay intact.
         </p>
       </header>
 
       <ChatInterface />
 
       <p className="mt-4 text-xs text-slate-500">
-        The API key is stored exclusively on the server. This assistant answers
-        questions about portfolio projects and skills — not general web search.
+        API keys stay on the server. This assistant answers portfolio questions
+        only — not general web search.
       </p>
     </div>
   );

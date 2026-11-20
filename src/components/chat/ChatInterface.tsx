@@ -6,6 +6,9 @@ import {
   PortfolioProjectCard,
   type PortfolioProjectCardData,
 } from "@/components/chat/PortfolioProjectCard";
+import { ChatEmptyState } from "@/components/chat/ChatEmptyState";
+import { ChatSkeleton } from "@/components/chat/ChatSkeleton";
+import { ChatErrorBanner } from "@/components/chat/ChatErrorBanner";
 
 type PortfolioSearchResult = {
   query: string;
@@ -87,11 +90,10 @@ function getSearchQuery(args: unknown): string | null {
 }
 
 /**
- * Streaming chat UI (FE-06)
- * - useChat for multi-turn state + stream consumption
- * - Thinking indicator until the first token arrives
- * - Stop button aborts mid-stream without breaking state
- * - Auto-scroll only while the user is pinned near the bottom
+ * Streaming chat UI (FE-06 / FE-07 / FE-08)
+ * - Tool result cards + lifecycle shells
+ * - Designed empty / skeleton / error + retry
+ * - Mobile-safe height (dvh) and pinned composer
  */
 export function ChatInterface() {
   const {
@@ -105,14 +107,16 @@ export function ChatInterface() {
     reload,
   } = useChat({
     api: "/api/chat",
+    maxSteps: 2,
   });
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [pinToBottom, setPinToBottom] = useState(true);
   const [showJump, setShowJump] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
-  // Track whether the user is near the bottom
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
@@ -130,17 +134,27 @@ export function ChatInterface() {
     return () => el.removeEventListener("scroll", onScroll);
   }, [messages.length]);
 
-  // Auto-scroll only when pinned
   useEffect(() => {
     if (!pinToBottom) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, isLoading, pinToBottom]);
+  }, [messages, isLoading, error, pinToBottom]);
+
+  // Clear local retry lock when the request settles
+  useEffect(() => {
+    if (!isLoading) setRetrying(false);
+  }, [isLoading]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!input.trim() || isLoading) return;
     setPinToBottom(true);
     handleSubmit(event);
+  }
+
+  function fillExample(text: string) {
+    setInput(text);
+    // Focus composer so mobile users can send immediately
+    requestAnimationFrame(() => inputRef.current?.focus());
   }
 
   const waitingForFirstToken =
@@ -152,34 +166,36 @@ export function ChatInterface() {
     isLoading &&
     messages.length > 0 &&
     messages[messages.length - 1]?.role === "assistant";
+
   const canRetry =
     Boolean(error) &&
     !isLoading &&
     messages.some((message) => message.role === "user");
 
   function retryLastRequest() {
-    if (!canRetry) return;
+    if (!canRetry || retrying) return;
+    setRetrying(true);
     setPinToBottom(true);
     void reload();
   }
 
   return (
-    <div className="flex h-[min(70vh,640px)] flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-lg">
-      {/* Messages */}
+    <div
+      className="flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-lg"
+      style={{
+        // Prefer dynamic viewport height on mobile Safari; fall back to vh
+        height: "min(70dvh, 640px)",
+        maxHeight: "min(70dvh, 640px)",
+      }}
+    >
       <div
         ref={listRef}
-        className="relative flex-1 space-y-4 overflow-y-auto px-3 py-4 sm:px-4"
+        className="relative flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4"
         aria-live="polite"
         aria-relevant="additions"
       >
-        {messages.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-400">
-            <p className="font-medium text-slate-200">Ask about my work</p>
-            <p className="mt-1">
-              Examples: “What did you build in MedNoviAI?”, “How does FocusBoard
-              store data?”, “What is your stack?”
-            </p>
-          </div>
+        {messages.length === 0 && !error ? (
+          <ChatEmptyState onPick={fillExample} disabled={isLoading} />
         ) : null}
 
         {messages.map((message) => {
@@ -253,10 +269,16 @@ export function ChatInterface() {
                       >
                         {result ? (
                           result.projects.length === 0 ? (
-                            <p className="rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-sm text-slate-300">
-                              No matching projects found. Try a project name,
-                              technology, or feature.
-                            </p>
+                            <div className="rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-3 text-sm text-slate-300">
+                              <p className="font-medium text-slate-200">
+                                No matching projects
+                              </p>
+                              <p className="mt-1 text-slate-400">
+                                Try a project name (MedNoviAI, FocusBoard), a
+                                technology (TypeScript), or a feature (filter,
+                                appointments).
+                              </p>
+                            </div>
                           ) : (
                             result.projects.map((project) => (
                               <PortfolioProjectCard
@@ -270,8 +292,10 @@ export function ChatInterface() {
                             role="alert"
                             className="rounded-lg border border-amber-800 bg-amber-950/40 px-3 py-2 text-sm text-amber-200"
                           >
-                            Project results could not be displayed. Please
-                            retry the request.
+                            Project results could not be displayed. Use{" "}
+                            <span className="font-medium">Retry last message</span>{" "}
+                            below if the request failed, or ask again with a
+                            clearer project name.
                           </p>
                         )}
                       </div>
@@ -282,56 +306,24 @@ export function ChatInterface() {
           );
         })}
 
-        {/* Thinking → first token handoff: show while waiting for assistant text */}
-        {waitingForFirstToken ? (
-          <div className="flex justify-start">
-            <div
-              className="rounded-2xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-300"
-              aria-label="Assistant is thinking"
-            >
-              <span className="inline-flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-400" />
-                </span>
-                Thinking…
-              </span>
-            </div>
-          </div>
-        ) : null}
+        {waitingForFirstToken ? <ChatSkeleton /> : null}
 
         {streamingAssistant ? (
           <p className="sr-only">Assistant is responding</p>
         ) : null}
 
         {error ? (
-          <div
-            role="alert"
-            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-800 bg-rose-950/60 px-4 py-3 text-sm text-rose-100"
-          >
-            <div>
-              <p className="font-semibold">We couldn’t complete that request.</p>
-              <p className="mt-1 text-rose-200">
-                Your conversation is still available. You can try the request
-                again.
-              </p>
-            </div>
-            {canRetry ? (
-              <button
-                type="button"
-                onClick={retryLastRequest}
-                className="rounded-md border border-rose-700 bg-rose-900/50 px-3 py-1.5 font-medium text-rose-100 hover:bg-rose-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
-              >
-                Retry last request
-              </button>
-            ) : null}
-          </div>
+          <ChatErrorBanner
+            message={error.message}
+            canRetry={canRetry}
+            retrying={retrying}
+            onRetry={retryLastRequest}
+          />
         ) : null}
 
         <div ref={bottomRef} />
       </div>
 
-      {/* Jump to latest */}
       {showJump ? (
         <div className="flex justify-center border-t border-slate-800 bg-slate-950/90 py-1.5">
           <button
@@ -347,15 +339,16 @@ export function ChatInterface() {
         </div>
       ) : null}
 
-      {/* Composer */}
       <form
         onSubmit={onSubmit}
         className="flex items-end gap-2 border-t border-slate-800 p-3 sm:p-4"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         <label htmlFor="chat-input" className="sr-only">
           Message
         </label>
         <textarea
+          ref={inputRef}
           id="chat-input"
           value={input}
           onChange={(event) => setInput(event.target.value)}
