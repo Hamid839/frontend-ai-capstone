@@ -7,62 +7,121 @@ export const metadata: Metadata = {
 
 const projects = [
   {
-    title: "MedNoviAI — Patient side",
-    stack: "Next.js · TypeScript · Tailwind · Supabase",
+    id: "mednoviai",
+    title: "MedNoviAI — Patient-side contributions",
+    stack: "Next.js · TypeScript · Tailwind CSS · Supabase",
     summary:
-      "Contributed to the patient-facing interface of a healthcare application, including connecting the frontend to Supabase.",
-    status: "Case study",
+      "Contributed to the patient-facing frontend of a healthcare platform and integrated the interface with Supabase.",
+    caseStudy:
+      "My work focused on patient-side features within a team project. The Supabase integration helped me learn to connect frontend UI with application data. This is a contribution to the patient experience, not a claim that I built the full appointment-booking system.",
+    projectHref:
+      "https://github.com/Hamid839/frontend-ai-capstone/blob/main/FocusBoard/case-studies.md#case-study-1-mednoviai-patient-side-experience",
+    projectLabel: "Read the MedNoviAI contribution case study",
   },
   {
+    id: "focusboard",
     title: "FocusBoard",
     stack: "React · TypeScript · Vite · localStorage",
     summary:
-      "Local-first task planner built with AI assistance. Filters, search, priority sort, and accessible controls.",
-    status: "Week 3 assignment",
+      "A local-first task planner with task search, status and category filters, priority sorting, and accessible controls.",
+    caseStudy:
+      "I built FocusBoard as a frontend project. Tasks are saved in the browser's local storage; the app has no account, cloud sync, backend, or AI API. Its interactions include creating and completing tasks, filtering, searching, and sorting.",
+    projectHref: "https://github.com/Hamid839/frontend-ai-capstone/tree/main/FocusBoard",
+    projectLabel: "View the FocusBoard project files",
   },
   {
-    title: "Settings Form Drill",
-    stack: "React · TypeScript · react-hook-form · zod",
+    id: "flyrank-capstone",
+    title: "FlyRank AI Frontend Engineering capstone",
+    stack: "Next.js · TypeScript · Tailwind CSS",
     summary:
-      "Same feature built twice (vague vs precise prompts) to measure the cost of underspecified requests.",
-    status: "Workflow study",
+      "This portfolio project brings together project pages, accessible interface exercises, and an AI chat that can search verified project information.",
+    caseStudy:
+      "The capstone is an ongoing portfolio and learning project. Its existing work includes a Next.js App Router site, a project-aware chat experience, and accessible interactive component examples. The chat API is a server route; its provider configuration stays server-side.",
+    projectHref: "https://github.com/Hamid839/frontend-ai-capstone",
+    projectLabel: "View the capstone repository",
   },
 ];
 
 export default function WorkPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight text-white">Work</h1>
-      <p className="mt-3 max-w-2xl text-slate-400">
-        Selected projects and evidence from the Frontend AI Engineering track.
-        Each entry is a placeholder that will grow into a full case study.
-      </p>
+      <header>
+        <p className="text-sm font-medium uppercase tracking-wider text-brand-400">
+          Selected projects
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
+          Work &amp; case studies
+        </h1>
+        <p className="mt-3 max-w-2xl leading-relaxed text-slate-400">
+          A closer look at my frontend contributions and project work. Each
+          case study distinguishes my work from the wider team or project.
+        </p>
+      </header>
 
-      <ul className="mt-12 space-y-6">
+      <ul className="mt-10 space-y-6">
         {projects.map((project) => (
           <li
-            key={project.title}
-            className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 transition hover:border-slate-600"
+            key={project.id}
+            id={`${project.id}-case-study`}
+            className="scroll-mt-24 rounded-xl border border-slate-800 bg-slate-900/40 p-6"
           >
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h2 className="text-xl font-semibold text-white">{project.title}</h2>
-              <span className="rounded-full bg-slate-800 px-3 py-0.5 text-xs text-slate-300">
-                {project.status}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-brand-300">{project.stack}</p>
-            <p className="mt-3 text-slate-400">{project.summary}</p>
+            <article aria-labelledby={`${project.id}-heading`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <h2
+                  id={`${project.id}-heading`}
+                  className="text-xl font-semibold text-white"
+                >
+                  {project.title}
+                </h2>
+                <p className="text-sm text-brand-300">{project.stack}</p>
+              </div>
+              <p className="mt-4 leading-relaxed text-slate-300">
+                {project.summary}
+              </p>
+              <section
+                className="mt-5 border-t border-slate-800 pt-4"
+                aria-labelledby={`${project.id}-case-heading`}
+              >
+                <h3
+                  id={`${project.id}-case-heading`}
+                  className="text-sm font-semibold text-white"
+                >
+                  Case study
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                  {project.caseStudy}
+                </p>
+              </section>
+              <p className="mt-5">
+                <a
+                  href={project.projectHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center rounded-md text-sm font-medium text-brand-300 underline decoration-brand-300/50 underline-offset-4 transition hover:text-brand-200"
+                >
+                  {project.projectLabel}
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </p>
+            </article>
           </li>
         ))}
       </ul>
 
-      <p className="mt-10 text-sm text-slate-500">
-        Full write-ups live in the repository{" "}
-        <Link href="https://github.com/Hamid839/frontend-ai-capstone/blob/main/case-studies.md" className="text-brand-400 hover:underline">
-          case-studies.md
+      <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <Link
+          href="/contact"
+          className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500"
+        >
+          Discuss my work
         </Link>
-        .
-      </p>
+        <Link
+          href="/notes"
+          className="text-sm font-medium text-brand-300 underline decoration-brand-300/50 underline-offset-4 hover:text-brand-200"
+        >
+          Notes &amp; learning
+        </Link>
+      </div>
     </div>
   );
 }

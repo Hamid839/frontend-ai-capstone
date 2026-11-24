@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hamid Shoukat · Frontend AI Capstone",
+    default: "Hamid Shoukat | Frontend Developer",
     template: "%s · Hamid Shoukat",
   },
   description:
-    "Portfolio of a frontend engineer building responsive React interfaces that connect to real APIs.",
+    "Hamid Shoukat is a frontend-focused developer in Lahore, Pakistan, building responsive React interfaces connected to real APIs.",
 };
 
 export default function RootLayout({
