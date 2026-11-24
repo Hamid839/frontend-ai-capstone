@@ -1,0 +1,199 @@
+/* SmartButton — motion language
+ * Durations chosen for perceived responsiveness:
+ *   hover/press  ~120ms  (instant feedback under the finger)
+ *   state morph  ~220ms  (readable but not sluggish)
+ *   success hold 1.6s / error hold 2.2s (enough to read, then return)
+ * Easing: cubic-bezier(0.22, 1, 0.36, 1) — ease-out with a soft landing
+ * Only transform + opacity are animated (no layout thrash).
+ */
+
+.smart-btn {
+  --btn-bg: #4f46e5;
+  --btn-bg-hover: #6366f1;
+  --btn-bg-active: #4338ca;
+  --btn-fg: #ffffff;
+  --btn-success: #059669;
+  --btn-error: #dc2626;
+  --btn-duration: 220ms;
+  --btn-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --btn-press: 120ms;
+
+  background-color: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  will-change: transform;
+}
+
+/* Idle → hover / active (compositor-friendly) */
+.smart-btn:not([disabled]):hover {
+  background-color: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  transition-duration: var(--btn-press);
+}
+
+.smart-btn:not([disabled]):active {
+  background-color: var(--btn-bg-active);
+  transform: translateY(0) scale(0.98);
+  transition-duration: 80ms;
+}
+
+/* Focus already handled via Tailwind focus-visible ring */
+
+/* ---------- Loading ---------- */
+.smart-btn[data-state="loading"] {
+  background-color: #4338ca;
+  cursor: wait;
+  min-width: 7.5rem;
+}
+
+.smart-btn[data-state="loading"] .smart-btn__label {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity var(--btn-duration) var(--btn-ease),
+    transform var(--btn-duration) var(--btn-ease);
+}
+
+.smart-btn[data-state="loading"] .smart-btn__spinner {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity var(--btn-duration) var(--btn-ease),
+    transform var(--btn-duration) var(--btn-ease);
+}
+
+.smart-btn__spinner {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+  pointer-events: none;
+  color: #c7d2fe;
+}
+
+.smart-btn__spinner-circle {
+  animation: smart-spin 0.75s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes smart-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Success ---------- */
+.smart-btn[data-state="success"] {
+  background-color: var(--btn-success);
+  border-color: #047857;
+}
+
+.smart-btn[data-state="success"] .smart-btn__label {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--btn-duration) var(--btn-ease),
+    transform var(--btn-duration) var(--btn-ease);
+}
+
+.smart-btn[data-state="success"] .smart-btn__spinner {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+}
+
+.smart-btn[data-state="success"] .smart-btn__icon--success {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity 180ms var(--btn-ease),
+    transform 220ms var(--btn-ease);
+}
+
+/* ---------- Error ---------- */
+.smart-btn[data-state="error"] {
+  background-color: var(--btn-error);
+  border-color: #b91c1c;
+}
+
+.smart-btn[data-state="error"] .smart-btn__label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.smart-btn[data-state="error"] .smart-btn__spinner {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+}
+
+.smart-btn[data-state="error"] .smart-btn__icon--error {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity 180ms var(--btn-ease),
+    transform 220ms var(--btn-ease);
+}
+
+/* Shake once on error (skipped under reduced motion) */
+.smart-btn[data-state="error"][data-reduced="false"] {
+  animation: smart-shake 420ms var(--btn-ease) 1;
+}
+
+@keyframes smart-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
+/* Icons default hidden */
+.smart-btn__icon {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  pointer-events: none;
+  color: #ffffff;
+}
+
+/* Idle / default label transitions */
+.smart-btn__label {
+  transition:
+    opacity var(--btn-duration) var(--btn-ease),
+    transform var(--btn-duration) var(--btn-ease);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .smart-btn,
+  .smart-btn__label,
+  .smart-btn__spinner,
+  .smart-btn__icon {
+    transition-duration: 1ms !important;
+    animation: none !important;
+  }
+
+  .smart-btn:not([disabled]):hover,
+  .smart-btn:not([disabled]):active {
+    transform: none;
+  }
+
+  .smart-btn__spinner-circle {
+    animation: none;
+  }
+}
+
+/* Disabled visual */
+.smart-btn:disabled:not([data-state="loading"]) {
+  opacity: 0.5;
+  background-color: #475569;
+  box-shadow: none;
+}
